@@ -1,0 +1,7 @@
+Random - A library for reading and debiasing input from a hardware random number bit generator.
+Created by Derek Chafin
+December 5, 2011
+Released into public domain
+
+This library reads output from a random bit generator using the arduino's adc.
+It has two bias removal methods, exclusive or (XOR) and von neumann code, as well the option for no bias removal at all.
