@@ -85,6 +85,9 @@ byte Random::readInput()
 
 byte Random::process(){
   _byte_ready = false;
+  unsigned long start_time = millis();
+  
+
   while (!_byte_ready)
   {
     byte adc_byte = readInput();
@@ -108,6 +111,12 @@ byte Random::process(){
 //    }	
   }
   
+  unsigned long end_time = millis();
+  
+  if ((end_time - start_time) > 250)
+  {
+    calibrate();
+  }
   return _random_bits;
 }
 
