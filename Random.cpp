@@ -5,17 +5,71 @@
   Released into the public domain.
 */
 
-#define BINS_SIZE 256
-#define CALIBRATION_SIZE 50000
+
 #define DEFAULT_BITS 2
 
 #include "Arduino.h"
 #include "Random.h"
 
-Random::Random(int adc_pin, debias_method bias_removal)
+Random::Random(int adc_pin, int status_pin, debias_method bias_removal)
 {
   _adc_pin = adc_pin;
   _bias_removal = bias_removal;
+  _status_pin = status_pin;
+}
+
+void Random::calibrate(byte adc_byte){
+  _bins[adc_byte]++;
+}
+
+unsigned int Random::findThreshold(){
+  unsigned long half;
+  unsigned long total = 0;
+  int i;
+
+  for(i=0; i < BINS_SIZE; i++){
+    total += _bins[i];
+  }	
+
+  half = total >> 1;
+  total = 0;
+  for(i=0; i < BINS_SIZE; i++){
+    total += _bins[i];
+    if(total > half){
+      break;
+    }	
+  }
+  return i;
+}
+
+void Random::blinkLed(){
+  digitalWrite(_status_pin, HIGH);
+  delay(30);
+  digitalWrite(_status_pin, LOW);
+}
+
+int Random::calibrate()
+{
+  unsigned int increment = CALIBRATION_SIZE / 10;
+  unsigned int num_increments = 0; //progress units so far
+  unsigned int threshold;
+
+  for(unsigned int i = 0; i < CALIBRATION_SIZE; i++)
+  {
+    threshold = (num_increments + 1) * increment;
+    if(i > threshold){
+      num_increments++;
+      //Serial.print("*");
+      blinkLed();
+    }
+    
+    byte adc_byte = readInput();
+    calibrate(adc_byte);
+  }
+  
+  _threshold = findThreshold();
+  Serial.println(_threshold);
+  return _threshold;
 }
 
 byte Random::readInput()
@@ -35,22 +89,23 @@ byte Random::process(){
   {
     byte adc_byte = readInput();
     boolean input_bool;
-  for (int i=0; i < DEFAULT_BITS; i++)
-  {
-    input_bool = bitRead(adc_byte, i);
-
-      switch(_bias_removal){
+//    for (int i=0; i < DEFAULT_BITS; i++)
+//    {
+//      input_bool = bitRead(adc_byte, i);
+    input_bool = (adc_byte < _threshold) ? 1 : 0;
+    
+    switch(_bias_removal){
       case VON_NEUMANN:
-      vonNeumann(input_bool); 
-      break;
+        vonNeumann(input_bool); 
+        break;
       case EXCLUSIVE_OR:
         exclusiveOr(input_bool);
-      break;
+        break;
       case NO_BIAS_REMOVAL:
-      buildByte(input_bool);
-      break;
-      }
-  }	
+        buildByte(input_bool);
+        break;
+    }
+//    }	
   }
   
   return _random_bits;
