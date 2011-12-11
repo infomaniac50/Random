@@ -53,7 +53,12 @@ int Random::calibrate()
   unsigned int increment = CALIBRATION_SIZE / 10;
   unsigned int num_increments = 0; //progress units so far
   unsigned int threshold;
-
+  
+  for(int i = 0; i < BINS_SIZE; i++)
+  {
+    _bins[i] = 0;
+  }
+  
   for(unsigned int i = 0; i < CALIBRATION_SIZE; i++)
   {
     threshold = (num_increments + 1) * increment;
