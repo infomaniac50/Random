@@ -8,7 +8,6 @@
 
 #define DEFAULT_BITS 2
 
-#include "Arduino.h"
 #include "Random.h"
 
 Random::Random(int adc_pin, int status_pin, debias_method bias_removal)

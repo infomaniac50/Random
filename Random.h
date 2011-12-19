@@ -8,7 +8,11 @@
 #ifndef Random_h
 #define Random_h
 
-#include "Arduino.h"
+#if (ARDUINO >= 100)
+ #include "Arduino.h"
+#else
+ #include "WProgram.h"
+#endif
 
 #define BINS_SIZE 256
 #define CALIBRATION_SIZE 50000
