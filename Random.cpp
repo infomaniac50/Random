@@ -15,6 +15,7 @@ Random::Random(int adc_pin, int status_pin, debias_method bias_removal)
   _adc_pin = adc_pin;
   _bias_removal = bias_removal;
   _status_pin = status_pin;
+  pinMode(_status_pin, OUTPUT);
 }
 
 void Random::calibrate(byte adc_byte){
@@ -43,7 +44,7 @@ unsigned int Random::findThreshold(){
 
 void Random::blinkLed(){
   digitalWrite(_status_pin, HIGH);
-  delay(30);
+  delay(100);
   digitalWrite(_status_pin, LOW);
 }
 
