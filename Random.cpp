@@ -6,164 +6,181 @@
 */
 
 
-#define DEFAULT_BITS 2
+#define DEFAULT_BITS 0b11
 
 #include "Random.h"
-
-Random::Random(int adc_pin, int status_pin, debias_method bias_removal)
-{
+//begin public constuctors
+Random::Random(int adc_pin, debias_method bias_removal){
   _adc_pin = adc_pin;
   _bias_removal = bias_removal;
-  _status_pin = status_pin;
-  pinMode(_status_pin, OUTPUT);
 }
+//end public constructors
 
-void Random::calibrate(byte adc_byte){
-  _bins[adc_byte]++;
-}
-
-unsigned int Random::findThreshold(){
-  unsigned long half;
-  unsigned long total = 0;
-  int i;
-
-  for(i=0; i < BINS_SIZE; i++){
-    total += _bins[i];
-  }	
-
-  half = total >> 1;
-  total = 0;
-  for(i=0; i < BINS_SIZE; i++){
-    total += _bins[i];
-    if(total > half){
-      break;
-    }	
-  }
-  return i;
-}
-
-void Random::blinkLed(){
-  digitalWrite(_status_pin, HIGH);
-  delay(100);
-  digitalWrite(_status_pin, LOW);
-}
-
-int Random::calibrate()
-{
-  unsigned int increment = CALIBRATION_SIZE / 10;
-  unsigned int num_increments = 0; //progress units so far
-  unsigned int threshold;
-  
-  for(int i = 0; i < BINS_SIZE; i++)
-  {
-    _bins[i] = 0;
-  }
-  
-  for(unsigned int i = 0; i < CALIBRATION_SIZE; i++)
-  {
-    threshold = (num_increments + 1) * increment;
-    if(i > threshold){
-      num_increments++;
-      //Serial.print("*");
-      blinkLed();
-    }
-    
-    byte adc_byte = readInput();
-    calibrate(adc_byte);
-  }
-  
-  _threshold = findThreshold();
-  Serial.println(_threshold);
-  return _threshold;
-}
-
-byte Random::readInput()
-{
+//begin private methods
+byte Random::read_input(){
   //read the pin
   int adc_value = analogRead(_adc_pin);
   
-  //get the two least significant bits
-  byte adc_byte = adc_value >> DEFAULT_BITS;
-  
-  return adc_byte;
+  //return the two least significant bits
+  return (byte)(adc_value && DEFAULT_BITS);
 }
 
-byte Random::process(){
-  _byte_ready = false;
-  unsigned long start_time = millis();
+unsigned int Random::find_threshold(unsigned int* bins){
+  unsigned long half;
+  unsigned long total = 0;
+  unsigned int i;
   
-
-  while (!_byte_ready)
-  {
-    byte adc_byte = readInput();
-    boolean input_bool;
-//    for (int i=0; i < DEFAULT_BITS; i++)
-//    {
-//      input_bool = bitRead(adc_byte, i);
-    input_bool = (adc_byte < _threshold) ? 1 : 0;
-    
-    switch(_bias_removal){
-      case VON_NEUMANN:
-        vonNeumann(input_bool); 
-        break;
-      case EXCLUSIVE_OR:
-        exclusiveOr(input_bool);
-        break;
-      case NO_BIAS_REMOVAL:
-        buildByte(input_bool);
-        break;
-    }
-//    }	
+  //add the total counts from all bins
+  for(i=0; i < BINS_SIZE; i++){
+    total += bins[i];
   }
   
-  unsigned long end_time = millis();
-  
-  if ((end_time - start_time) > 250)
-  {
-    calibrate();
+  //divide by two to get half of the total count
+  half = total >> 1;
+  //zero the total again
+  total = 0;
+  //for all the bins
+  for(i=0; i < BINS_SIZE; i++){
+    //keep adding up the total
+    total += bins[i];
+    //until the total is greater than half
+    if(total > half){
+      //exit the loop
+      break;
+    }	
   }
-  return _random_bits;
+  //return the bin that is at half count
+  return i;
 }
 
-void Random::exclusiveOr(byte input){
+byte Random::exclusive_or(byte input){
   static boolean flip_flop = 0;
   flip_flop = !flip_flop;
-  buildByte(flip_flop ^ input);
+  return flip_flop ^ input;
 }
 
-void Random::vonNeumann(byte input){
-  static int count = 1;
+byte Random::von_neumann(byte input){
   static boolean previous = 0;
   static boolean flip_flop = 0;
-
-  flip_flop = !flip_flop;
-
+  byte output;
+  
   if(flip_flop){
     if(input == 1 && previous == 0){
-      buildByte(0);
+      output = 0b0;  
+      flip_flop = !flip_flop;
     }
     else if (input == 0 && previous == 1){
-      buildByte(1); 
+      output = 0b1;
+      flip_flop = !flip_flop;
+    }
+    else
+    {
+      output = 0b11;
     }
   }
-  previous = input;
+  else
+  {
+    output = 0b11;
+    previous = input;
+    flip_flop = !flip_flop;
+  }
+  
+  return output;
 }
 
-void Random::buildByte(boolean input){
-  static int byte_counter = 0;
-  static byte out = 0;
-
-  if (input == 1){
-    out = (out << 1) | 0x01;
-  }
-  else{
-    out = (out << 1); 
-  }
-  byte_counter++;
-  byte_counter %= 8;
-
-  if(byte_counter == 0){
-  _byte_ready = true;
-  _random_bits = out;
+inline byte Random::debias(byte input){
+  //do bias removal
+  switch(_bias_removal){
+    case VON_NEUMANN:
+      return von_neumann(input);
+    case EXCLUSIVE_OR:
+      return exclusive_or(input);
+    case NO_BIAS_REMOVAL:
+      return input;        
   }
 }
+//end private methods
+
+//begin public methods
+unsigned int Random::calibrate(){
+  unsigned int* bins = (unsigned int*)malloc(BINS_SIZE * sizeof(unsigned int));
+  
+  //set all value counts to zero  
+  for(int i = 0; i < BINS_SIZE; i++)
+  {
+    bins[i] = 0;
+  }
+  
+  //loop until i equals the calibration sample size 
+  for(unsigned int i = 0; i < CALIBRATION_SIZE; i++)
+  {
+    //get a sample
+    byte adc_byte = read_input();
+    //add one count to the bin of the sample value
+    bins[adc_byte]++;
+  }
+  
+  //find the threshold
+  _threshold = find_threshold(bins);
+  
+  free(bins);
+  
+  return _threshold;
+}
+
+byte Random::get_bit(){
+  byte output_bit = 0b11;
+
+  //keep reading bits
+  while(output_bit == 0b11)
+  {
+    //read the rng and debias if nescessary
+    output_bit = debias((read_input() < _threshold) ? 0b1 : 0b0);    
+  }
+  return output_bit;
+}
+
+boolean Random::get_boolean(){
+  byte part = get_bit();
+  return part == 0b1;
+}
+
+byte Random::get_byte(){
+	byte number = 0b0;
+	
+	for (int i = 0; i < sizeof(byte); i++)
+	{
+		byte part = get_bit();
+		number |= part;
+		number <<= 1;
+	}
+	
+	return number;
+}
+
+int Random::get_int(){
+	int number = 0b0;
+	
+	for (int i = 0; i < sizeof(int) / sizeof(byte); i++)
+	{
+		byte part = get_byte();
+		number |= part;
+		number <<= sizeof(byte);
+	}
+  
+  return number;
+}
+
+long Random::get_long(){
+	long number = 0b0;
+	
+	for (int i = 0; i < sizeof(long) / sizeof(byte); i++)
+	{
+	  byte part = get_byte();
+    number |= part;
+    number <<= sizeof(byte);
+	}
+  
+  return number;
+}
+//end public methods

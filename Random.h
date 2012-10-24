@@ -26,24 +26,27 @@ enum debias_method
 
 class Random
 {
+  //public constructors
   public:
-    Random(int adc_pin, int status_pin, debias_method bias_removal);
-    int calibrate();
-    byte process();
-  private:
-    void blinkLed();
-    void calibrate(byte adc_byte);
-    unsigned int findThreshold();
-    void exclusiveOr(byte input);
-    void vonNeumann(byte input);
-    void buildByte(boolean input);
-    byte readInput();
+    Random(int adc_pin, debias_method bias_removal);
+  //private methods
+  private:    
+    byte read_input();
+    unsigned int find_threshold(unsigned int * bins);
+    byte exclusive_or(byte input);
+    byte von_neumann(byte input);
+    byte debias(byte input);
+  //private vars
     debias_method _bias_removal;
-    boolean _byte_ready;
-    byte _random_bits;
-    int _status_pin;
     int _adc_pin;
-    byte _threshold;
-    unsigned int _bins[BINS_SIZE];
+    unsigned int _threshold;
+  //public methods
+  public:
+    unsigned int calibrate();
+    byte get_bit();
+    boolean get_boolean();
+    byte get_byte();
+    int get_int();
+    long get_long();
 };
 #endif

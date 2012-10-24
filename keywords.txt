@@ -1,6 +1,11 @@
 Random	KEYWORD1
 
-process	KEYWORD2
+calibrate	KEYWORD2
+get_bit	KEYWORD2
+get_boolean	KEYWORD2
+get_byte	KEYWORD2
+get_int	KEYWORD2
+get_long	KEYWORD2
 
 NO_BIAS_REMOVAL	LITERAL1
 VON_NEUMANN	LITERAL1
