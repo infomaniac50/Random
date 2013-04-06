@@ -1,8 +1,9 @@
 /*
   Random.cpp - Library for reading and debiasing input from a hardware random number bit generator
-  Created by Derek Chafin, December 5, 2011
-  Based on the program RNG v2 by Rob Seward
-  Released into the public domain.
+  Based on the program RNG v2 by Rob Seward http://robseward.com/misc/RNG2/
+  Created by Derek Chafin
+  October 24, 2012
+  License: Attribution-NonCommercial 3.0 Unported
 */
 
 
