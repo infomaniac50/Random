@@ -48,7 +48,7 @@ unsigned int Random::find_threshold(unsigned int* bins){
     if(total > half){
       //exit the loop
       break;
-    }	
+    }  
   }
   //return the bin that is at half count
   return i;
@@ -147,40 +147,40 @@ boolean Random::get_boolean(){
 }
 
 byte Random::get_byte(){
-	byte number = 0b0;
-	
-	for (int i = 0; i < sizeof(byte); i++)
-	{
-		byte part = get_bit();
-		number |= part;
-		number <<= 1;
-	}
-	
-	return number;
+  byte number = 0b0;
+  
+  for (int i = 0; i < sizeof(byte); i++)
+  {
+    byte part = get_bit();
+    number |= part;
+    number <<= 1;
+  }
+  
+  return number;
 }
 
 int Random::get_int(){
-	int number = 0b0;
-	
-	for (int i = 0; i < sizeof(int) / sizeof(byte); i++)
-	{
-		byte part = get_byte();
-		number |= part;
-		number <<= sizeof(byte);
-	}
+  int number = 0b0;
+  
+  for (int i = 0; i < sizeof(int) / sizeof(byte); i++)
+  {
+    byte part = get_byte();
+    number |= part;
+    number <<= sizeof(byte);
+  }
   
   return number;
 }
 
 long Random::get_long(){
-	long number = 0b0;
-	
-	for (int i = 0; i < sizeof(long) / sizeof(byte); i++)
-	{
-	  byte part = get_byte();
+  long number = 0b0;
+  
+  for (int i = 0; i < sizeof(long) / sizeof(byte); i++)
+  {
+    byte part = get_byte();
     number |= part;
     number <<= sizeof(byte);
-	}
+  }
   
   return number;
 }
