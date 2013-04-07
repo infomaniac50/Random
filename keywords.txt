@@ -1,5 +1,16 @@
+#######################################
+# Syntax Coloring Map Random
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
 Random	KEYWORD1
 
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
 calibrate	KEYWORD2
 get_bit	KEYWORD2
 get_boolean	KEYWORD2
@@ -7,6 +18,9 @@ get_byte	KEYWORD2
 get_int	KEYWORD2
 get_long	KEYWORD2
 
+#######################################
+# Constants (LITERAL1)
+#######################################
 NO_BIAS_REMOVAL	LITERAL1
 VON_NEUMANN	LITERAL1
 EXCLUSIVE_OR	LITERAL1
