@@ -1,9 +1,18 @@
 /*
-  Random.cpp - Library for reading and debiasing input from a hardware random number bit generator
-  Based on the program RNG v2 by Rob Seward http://robseward.com/misc/RNG2/
-  Created by Derek Chafin
-  October 24, 2012
-  License: Attribution-NonCommercial 3.0 Unported
+Original RNG circuit and code by Rob Seward 2008-2009
+Project Page: http://robseward.com/misc/RNG2/
+License: http://creativecommons.org/licenses/by-nc/2.5/
+*/
+
+/*
+Random.cpp - A library for reading and de-biasing input from a hardware random bit generator.
+Author: Derek Chafin
+Version: 1.5
+Modified: October 24, 2012 
+Project Page: http://www.coding-squared.com/blog/2011/12/arduino-hardware-random-number-generator/
+License
+This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
+To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 */
 
 
