@@ -16,8 +16,6 @@ To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/
 */
 
 
-#define DEFAULT_BITS 0b11
-
 #include "Random.h"
 //begin public constuctors
 Random::Random(int adc_pin, debias_method bias_removal){
@@ -28,11 +26,12 @@ Random::Random(int adc_pin, debias_method bias_removal){
 
 //begin private methods
 byte Random::read_input(){
-  //read the pin
-  int adc_value = analogRead(_adc_pin);
+  // Arduino ADC is 10 bits and the low order bits may not be accurate
+  // so read the pin and dump 2 LSB's
+  int adc_value = analogRead(_adc_pin) >> 2;
   
-  //return the two least significant bits
-  return (byte)(adc_value && DEFAULT_BITS);
+  //return the remaining 8 bits
+  return (byte)adc_value;
 }
 
 unsigned int Random::find_threshold(unsigned int* bins){
